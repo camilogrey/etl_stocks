@@ -4,6 +4,8 @@ Este documento detalla de manera integral el ciclo de vida del proyecto de ingen
 
 ---
 
+# Fase 1: Ingesta de datos
+
 ## 1. Ingesta Inicial: Contenedor Docker y Almacenamiento Local (Capa Bronze)
 El proyecto comenzó con la extracción automatizada de datos históricos del mercado bursátil utilizando la API pública de **yfinance**. 
 * **Entorno de Ejecución:** El proceso se configuró dentro de un contenedor de Docker ejecutándose sobre un disco SSD alojado en una máquina virtual con Ubuntu.
@@ -11,14 +13,16 @@ El proyecto comenzó con la extracción automatizada de datos históricos del me
 
 ---
 
-## 2. Reto de Conectividad y Migración a Microsoft Fabric (OneLake)
+# Fase 2: Arquitectura Fabric 
+
+## 1. Reto de Conectividad y Migración a Microsoft Fabric (OneLake)
 Debido a las restricciones de conectividad y acceso directo entre los archivos locales de la máquina virtual/SSD hacia la nube de Microsoft Fabric, se evaluaron diversas alternativas de volcado:
 * **Intento inicial:** Volcar los archivos `.parquet` directamente hacia la máquina host.
 * **Solución exitosa:** Se habilitó una descarga por red a través de un puerto temporal y web temporal para extraer los archivos locales, permitiendo subirlos de forma manual pero efectiva a la sección de archivos (`Files`) del Lakehouse en Fabric, denominado **`stock_bronze_lakehouse`**.
 
 ---
 
-## 3. Procesamiento y Limpieza (Capa Silver: `stock_silver_enriched`)
+## 2. Procesamiento y Limpieza (Capa Silver: `stock_silver_enriched`)
 Una vez que los datos crudos (*raw*) estuvieron disponibles en el Lakehouse de Bronze en Microsoft Fabric, se creó un Notebook de PySpark para estructurar la **Capa Silver**.
 * **Acciones realizadas sobre los datos raw:**
   * Lectura de los archivos Parquet originales.
@@ -28,7 +32,7 @@ Una vez que los datos crudos (*raw*) estuvieron disponibles en el Lakehouse de B
 
 ---
 
-## 4. Analítica Avanzada y Negocio (Capa Gold: `stock_gold_analytics`)
+## 3. Analítica Avanzada y Negocio (Capa Gold: `stock_gold_analytics`)
 Partiendo de la tabla limpia de la Capa Silver (`stock_silver_enriched`), se desarrolló un segundo Notebook en PySpark para materializar la **Capa Gold**, orientada por completo al análisis financiero y de negocio.
 * **Transformaciones y cálculos aplicados:**
   * **Funciones de Ventana (*Window Functions*):** Particionamiento lógico por cada acción (`ticker`) y ordenamiento cronológico por fecha (`date`).
@@ -40,7 +44,44 @@ Partiendo de la tabla limpia de la Capa Silver (`stock_silver_enriched`), se des
 
 ---
 
-## 5. Incidencias Técnicas, Retos y Soluciones
+# Fase 3: Modelado Semántico, Explotación y Distribución en Microsoft Fabric
+
+Este documento detalla la segunda fase del flujo de ingeniería y analítica de datos implementado en Microsoft Fabric. Tomando como base la capa analítica consolidada (Capa Gold), esta fase abarca la estructuración relacional del modelo de datos, la construcción de visualizaciones interactivas en Power BI y la posterior gobernanza y empaquetado de la solución mediante una Aplicación corporativa.
+
+---
+
+## 1. Creación del Modelo Semántico (Semantic Model)
+
+Una vez materializada la tabla analítica en la Capa Gold bajo el nombre `stock_gold_analytics`, se procedió a estructurar el modelo de datos en Microsoft Fabric para dotarlo de contexto de negocio y capacidades relacionales óptimas.
+
+* **Estructura en Estrella (Star Schema):** Se integraron dos entidades principales dentro del entorno de modelado de Fabric:
+  1. **Tabla de Hechos (`stock_gold_analytics`):** Contiene los registros transaccionales diarios, precios normalizados y métricas financieras avanzadas calculadas (`Daily_Return_Pct`, `Price_Spread` y la media móvil `SMA_5`).
+  2. **Tabla de Dimensiones (`us_tech_activos`):** Aporta los atributos descriptivos de cada activo financiero, permitiendo enriquecer el análisis con el sector tecnológico al que pertenecen y la moneda de transacción (`currency`).
+* **Relación y Cardinalidad:** Se estableció una relación relacional activa de **Uno a Varios ($1$ a $*$)** vinculando el campo clave **`ticker`** desde la dimensión de activos hacia la tabla de hechos. Esto asegura una correcta propagación de filtros unidireccionales (`Single`) hacia las métricas financieras sin duplicidad de datos.
+
+---
+
+## 2. Explotación y Visualización de Datos (Power BI Report)
+
+Con el modelo semántico `Magnificent_Seven_Analytics` debidamente configurado, se desarrolló un reporte interactivo en el lienzo web de Power BI con el fin de traducir las métricas técnicas en información visual para la toma de decisiones.
+
+* **Evolución Temporal de Precios:** Gráficos de líneas que trazan el comportamiento de los precios de cierre (`closing_price`) y las medias móviles de corto plazo (`SMA_5`) a lo largo del tiempo para cada componente de los *Magnificent Seven*.
+* **Análisis de Volatilidad y Rendimiento:** Tarjetas y gráficos comparativos enfocados en el rendimiento porcentual diario promedio (`Daily_Return_Pct`) y la amplitud de las fluctuaciones de precios mediante el indicador `Price_Spread`.
+* **Distribución de Volumen Accionario:** Incorporación de un diagrama de tipo mapa de árbol (*TreeMap*) para dimensionar y comparar de manera visual el volumen total de operaciones (*volume*) agrupado por cada símbolo bursátil.
+* **Segmentación Dinámica:** Inclusión de filtros contextuales por fecha, ticker, sector y moneda.
+
+---
+
+## 3. Gobernanza, Empaquetado y Distribución (Fabric App)
+
+Para finalizar el ciclo de vida del dato y garantizar un acceso seguro y controlado para los usuarios finales, se empaquetó la solución analítica en una estructura corporativa:
+
+* **Creación de la Aplicación de Fabric:** A partir del espacio de trabajo (*Workspace*), se consolidó el reporte analítico en una **Fabric App** bajo el nombre de *Report Magnificent Seven*.
+* **Gestión de Audiencias y Permisos:** Se configuró el acceso para la organización (*Entire organization*), asegurando que cualquier miembro autorizado con el enlace corporativo pueda interactuar con el cuadro de mando.
+* **Separación de Entornos:** La publicación de la aplicación aísla a los consumidores finales de la lógica de desarrollo subyacente (notebooks de transformación y tablas en bruto de las capas Bronze/Silver), ofreciendo una interfaz limpia, profesional y orientada estrictamente al consumo analítico.
+
+---
+## . Incidencias Técnicas, Retos y Soluciones
 
 Durante el desarrollo del proyecto se presentaron diversos retos técnicos que fueron superados estratégicamente:
 1. **Problemas de Contexto en Spark (`Bloqueos y Peticiones Denegadas`):**
