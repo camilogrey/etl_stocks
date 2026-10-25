@@ -4,7 +4,7 @@
 [![PySpark](https://img.shields.io/badge/PySpark-3.x-E25A1C?logo=apachespark&logoColor=white)](https://spark.apache.org/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Power BI](https://img.shields.io/badge/Power_BI-F2C811?logo=powerbi&logoColor=black)](https://powerbi.microsoft.com/)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](#-licencia)
+
 
 Pipeline de ingeniería de datos **end-to-end** para la ingesta, procesamiento, enriquecimiento y analítica avanzada de las acciones de los **Magnificent Seven** (AAPL, MSFT, GOOGL, AMZN, NVDA, META, TSLA), implementado bajo una **arquitectura medallion (Bronze → Silver → Gold)** en **Microsoft Fabric**.
 
@@ -23,9 +23,7 @@ Pipeline de ingeniería de datos **end-to-end** para la ingesta, procesamiento, 
 - [📐 Métricas de negocio (Capa Gold)](#-métricas-de-negocio-capa-gold)
 - [⚠️ Incidencias técnicas y soluciones](#️-incidencias-técnicas-y-soluciones)
 - [🗺️ Roadmap](#️-roadmap)
-- [⚙️ Automatización del diagrama (GitHub Action)](#️-automatización-del-diagrama-github-action)
-- [🤝 Contribuciones](#-contribuciones)
-- [📜 Licencia](#-licencia)
+
 
 ---
 
