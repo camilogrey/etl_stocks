@@ -235,3 +235,8 @@ Todas las métricas se redondean a **2 decimales** antes de su persistencia como
 **Desarrollado con 🐳 Docker · ⚡ PySpark · 🧠 Microsoft Fabric · 📊 Power BI**
 
 </div>
+
+## 👤 Autor
+**Camilo García Rey**  
+- LinkedIn: https://www.linkedin.com/in/camilo-garcia-rey/  
+- GitHub Portfolio: github.com/camilogrey 
