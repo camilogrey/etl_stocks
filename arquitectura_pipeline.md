@@ -236,6 +236,8 @@ Todas las métricas se redondean a **2 decimales** antes de su persistencia como
 
 </div>
 
+[report app publicado](https://l1nk.dev/m6splef)
+
 ## 👤 Autor
 **Camilo García Rey**  
 - LinkedIn: https://www.linkedin.com/in/camilo-garcia-rey/  
